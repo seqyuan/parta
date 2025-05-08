@@ -1,5 +1,24 @@
 package main
 
+import (
+	"bufio"
+	"database/sql"
+	"fmt"
+	"sync"
+	"github.com/akamensky/argparse"
+	_ "github.com/mattn/go-sqlite3"
+	"io"
+	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
+	//"sync"
+	"syscall"
+	"time"
+)
+
 // Pool represents a goroutine pool
 type Pool struct {
     work chan func()
@@ -30,25 +49,6 @@ func (p *Pool) worker(task func()) {
         task = <-p.work
     }
 }
-
-import (
-	"bufio"
-	"database/sql"
-	"fmt"
-	"sync"
-	"github.com/akamensky/argparse"
-	_ "github.com/mattn/go-sqlite3"
-	"io"
-	"log"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strconv"
-	"strings"
-	//"sync"
-	"syscall"
-	"time"
-)
 
 type MySql struct {
 	Db	*sql.DB
