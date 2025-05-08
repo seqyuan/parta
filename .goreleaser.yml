@@ -1,5 +1,5 @@
 # Learn more: https://goreleaser.com
-version: 2
+version: 1
 builds:
   - env:
       - CGO_ENABLED=0

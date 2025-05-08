@@ -15,6 +15,10 @@ parallel task
 └── README.md     # Project documentation
 ```
 
+## update
+
+`git add -A  && git commit -m "v1.0.15" && git push && git tag v1.0.15 && git push origin v1.0.15`
+
 ## Getting Started
 
 1. Clone the repository
