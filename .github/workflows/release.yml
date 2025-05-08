@@ -21,7 +21,14 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: '1.22'
-      - run: go build -v ./...
+      - name: Install dependencies
+        run: |
+          go mod tidy
+          go get github.com/akamensky/argparse
+          go get github.com/mattn/go-sqlite3
+          go get github.com/seqyuan/gpool
+      - name: Build
+        run: go build -v ./...
 
   release:
     needs: [test, build]
