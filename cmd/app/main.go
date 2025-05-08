@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
-	"github.com/ahworld07/gpool"
+	"github.com/seqyuan/gpool"
 	"github.com/akamensky/argparse"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
@@ -17,8 +17,6 @@ import (
 	//"sync"
 	"syscall"
 	"time"
-
-	//"time"
 )
 
 type MySql struct {
