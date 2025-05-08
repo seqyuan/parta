@@ -1,5 +1,36 @@
 package main
 
+// Pool represents a goroutine pool
+type Pool struct {
+    work chan func()
+    sem  chan struct{}
+}
+
+// New creates a new goroutine pool
+func New(size int) *Pool {
+    return &Pool{
+        work: make(chan func()),
+        sem:  make(chan struct{}, size),
+    }
+}
+
+// Schedule schedules work to the pool
+func (p *Pool) Schedule(task func()) {
+    select {
+    case p.work <- task:
+    case p.sem <- struct{}{}:
+        go p.worker(task)
+    }
+}
+
+func (p *Pool) worker(task func()) {
+    defer func() { <-p.sem }()
+    for {
+        task()
+        task = <-p.work
+    }
+}
+
 import (
 	"bufio"
 	"database/sql"
@@ -183,20 +214,19 @@ func GetNeed2Run(dbObj *MySql)([]int){
 }
 
 func IlterCommand(dbObj *MySql, thred int, need2run []int){
-	var wg sync.WaitGroup
+	pool := New(thred)
 	var writeWg sync.WaitGroup
 
 	for _, N := range need2run{
-		wg.Add(1)
-		go RunCommand(N, &wg, dbObj, &writeWg)
+		N := N // create local copy for closure
+		pool.Schedule(func() {
+			RunCommand(N, dbObj, &writeWg)
+		})
 	}
-
-	wg.Wait()
-	writeWg.Wait()
 }
 
 
-func RunCommand(N int, wg *sync.WaitGroup, dbObj *MySql, writeWg *sync.WaitGroup){
+func RunCommand(N int, dbObj *MySql, writeWg *sync.WaitGroup){
 	tx, _ := dbObj.Db.Begin()
 	defer tx.Rollback()
 
@@ -254,7 +284,6 @@ func RunCommand(N int, wg *sync.WaitGroup, dbObj *MySql, writeWg *sync.WaitGroup
 
 	writeWg.Done()
 	CheckErr(err)
-	wg.Done()
 }
 
 func CheckExitCode(dbObj *MySql){
