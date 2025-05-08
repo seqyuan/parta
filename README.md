@@ -1,6 +1,6 @@
 # parta
 
-A Go module project
+parallel task
 
 ## Project Structure
 
