@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"fmt"
-	"github.com/seqyuan/gpool"
+	"sync"
 	"github.com/akamensky/argparse"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
@@ -183,20 +183,20 @@ func GetNeed2Run(dbObj *MySql)([]int){
 }
 
 func IlterCommand(dbObj *MySql, thred int, need2run []int){
-	pool := gpool.New(thred)
-	write_pool := gpool.New(1)
+	var wg sync.WaitGroup
+	var writeWg sync.WaitGroup
 
 	for _, N := range need2run{
-		pool.Add(1)
-		go RunCommand(N, pool, dbObj, write_pool)
+		wg.Add(1)
+		go RunCommand(N, &wg, dbObj, &writeWg)
 	}
 
-	write_pool.Wait()
-	pool.Wait()
+	wg.Wait()
+	writeWg.Wait()
 }
 
 
-func RunCommand(N int, pool *gpool.Pool, dbObj *MySql, write_pool *gpool.Pool){
+func RunCommand(N int, wg *sync.WaitGroup, dbObj *MySql, writeWg *sync.WaitGroup){
 	tx, _ := dbObj.Db.Begin()
 	defer tx.Rollback()
 
@@ -205,10 +205,10 @@ func RunCommand(N int, pool *gpool.Pool, dbObj *MySql, write_pool *gpool.Pool){
 	CheckErr(err)
 
 	now := time.Now().Format("2006-01-02 15:04:05")
-	write_pool.Add(1)
+	writeWg.Add(1)
 	_, err = dbObj.Db.Exec("UPDATE job set status=?, starttime=? where subJob_num=?", J_running, now, N)
 	CheckErr(err)
-	write_pool.Done()
+	writeWg.Done()
 
 	defaultFailedCode := 1
 	cmd := exec.Command("sh", subShellPath)
@@ -244,23 +244,17 @@ func RunCommand(N int, pool *gpool.Pool, dbObj *MySql, write_pool *gpool.Pool){
 
 	//var lock sync.Mutex //互斥锁
 	//lock.Lock()
-	write_pool.Add(1)
+	writeWg.Add(1)
 	now = time.Now().Format("2006-01-02 15:04:05")
 	if exitCode == 0{
-		//update_job_end.Exec(J_finished, now, N)
 		_, err = dbObj.Db.Exec("UPDATE job set status=?, endtime=?, exitCode=? where subJob_num=?", J_finished, now, exitCode, N)
-
 	}else{
 		_, err = dbObj.Db.Exec("UPDATE job set status=?, endtime=?, exitCode=? where subJob_num=?", J_failed, now, exitCode, N)
-
 	}
 
-	write_pool.Done()
-	//lock.Unlock() //解锁
-
-	//err = tx.Commit()
+	writeWg.Done()
 	CheckErr(err)
-	pool.Done()
+	wg.Done()
 }
 
 func CheckExitCode(dbObj *MySql){
@@ -333,6 +327,3 @@ func main() {
 	IlterCommand(dbObj, *opt_p, need2run)
 	CheckExitCode(dbObj)
 }
-
-
-
