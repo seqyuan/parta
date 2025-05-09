@@ -21,27 +21,18 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: '1.22'
-      - name: Install build dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential sqlite3 libsqlite3-dev
-      - name: Setup CGO
-        run: |
-          echo "CGO_ENABLED=1" >> $GITHUB_ENV
-          echo "GODEBUG=netdns=go" >> $GITHUB_ENV
-          echo "CGO_CFLAGS=-I/usr/include" >> $GITHUB_ENV
-          echo "CGO_LDFLAGS=-lsqlite3" >> $GITHUB_ENV
-      - name: Install Go dependencies
-        run: |
           go mod tidy
-          go get github.com/akamensky/argparse
-          go get github.com/mattn/go-sqlite3
+          go install github.com/mattn/go-sqlite3@latest
         
       - name: Build
         env:
           CGO_ENABLED: 1
         run: |
-          go build -tags osusergo,netgo,cgo -v ./...
+          go build -tags cgo -v ./...
 
   release:
     needs: [test, build]
@@ -62,11 +53,10 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Setup CGO
-        run: echo "CGO_ENABLED=1" >> $GITHUB_ENV
-
-      - name: Install SQLite dependencies
-        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
+      - name: Install cross-compile dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64 sqlite3 libsqlite3-dev
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
