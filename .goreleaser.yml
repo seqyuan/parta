@@ -12,14 +12,14 @@ builds:
       - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}"
     hooks:
       pre:
-        - cmd: bash -c '
+        - cmd: |
             set -ex
             # 等待apt锁释放
             while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 1; done
             while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 1; done
             sudo apt-get update -y
             sudo apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
-            sudo ldconfig'
+            sudo ldconfig
     goos:
       - linux
     goarch:
@@ -39,7 +39,7 @@ archives:
 
 checksum:
   name_template: "{{.ProjectName}}_{{.Version}}_checksums.txt"
-  algorithm: sha256
+    algorithm: sha256
 
 release:
   github:
