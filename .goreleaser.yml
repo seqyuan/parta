@@ -15,18 +15,19 @@ builds:
       - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}'
     hooks:
       pre:
-        - sh -c "set -ex
-          # 等待apt锁释放
-          while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 1; done
-          
-          cd /tmp
-          sudo -E apt-get update -y -qq
-          sudo -E apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
-          export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
-          sudo -E ldconfig
-          dpkg -L libsqlite3-dev
-          # 清理缓存
-          sudo -E apt-get clean"
+        - cmd: |
+            set -ex
+            # 等待apt锁释放
+            while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 1; done
+            
+            cd /tmp
+            sudo -E apt-get update -y -qq
+            sudo -E apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
+            export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+            sudo -E ldconfig
+            dpkg -L libsqlite3-dev
+            # 清理缓存
+            sudo -E apt-get clean
     goos:
       - linux
     goarch:

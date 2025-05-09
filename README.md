@@ -1,136 +1,130 @@
-# parta
-parallel task exe
+<p align="center">
+  <img alt="GoReleaser Logo" src="https://avatars2.githubusercontent.com/u/24697112?v=3&s=200" height="140" />
+  <h3 align="center">GoReleaser</h3>
+  <p align="center">Deliver Go binaries as fast and easily as possible.</p>
+</p>
 
-辅助实现多线程工具
+---
 
-### 编译
-```bash
-go build -o parta ./cmd/app/main.go
-chmod +x parta
-```
-# 程序功能
-> 程序适用于有很多运行时间短，但是需要运行很多的脚本，有助于减少投递的脚本。
-> 例如有1000个cat 命令需要执行，这些命令间没有依赖关系，每个cat命令运行在2min左右
+GoReleaser builds Go binaries for several platforms, creates a GitHub release and then
+pushes a Homebrew formula to a tap repository. All that wrapped in your favorite CI.
 
-1. 在一个进程里并行的执行指定的命令行
-2. 并行的线程可指定
-3. 如果并行执行的其中某些子进程错误退出，再次执行此程序的命令可跳过成功完成的项只执行失败的子进程
-4. 所有并行执行的子进程相互独立，互不影响
-5. 如果并行执行的任意一个子进程退出码非0，最终parta 也是非0退出
-6. parta会统计成功运行子脚本数量以及运行失败子脚本数量输出到stdout，如果有运行失败的脚本会输出到parta的stderr
+![](https://raw.githubusercontent.com/goreleaser/example-simple/main/goreleaser.gif)
 
-# 使用方法
+---
 
-## 程序参数
-```
--i  --infile  Input command file path containing shell commands to execute
--l  --line    Number of lines to group together as a single task unit. Default: 1
--p  --thred   Number of concurrent threads to execute tasks simultaneously. Default: 1
-```
-### -i
-`-i` 参数为一个shell脚本，例如`input.sh`这个shell脚本的内容示例如下
-```
-echo 1
-echo 11
-echo 2
-sddf
-echo 3
-grep -h
-echo 4
-echo 44
-echo 5
-echo 6
-```
+## Get GoReleaser
 
-### -l
-依照`-i`参数的示例，一共有10行命令，比如我们想每2行作为1个单位并行的执行，那么`-l`参数设置为2
+- [On your machine](https://goreleaser.com/install/);
+- [On CI/CD systems](https://goreleaser.com/ci/).
 
-### -p
-如果要对整个parta程序所在进程的资源做限制，可设置`-p`参数，指定最多同时并行多少个子进程
+## Documentation
 
-## 命令行示例
-`parta -i input.sh -l 2 -p 2`
-我们可以把以上命令写入到`work.sh`里，然后把`work.sh`投递到SGE或者K8s计算节点
+Documentation is hosted live at https://goreleaser.com
 
-## parta 产生的文件
+## Community
 
+You have questions, need support and or just want to talk about GoReleaser?
 
+Here are ways to get in touch with the GoReleaser community:
 
-1. `input.sh.db`文件，此文件为sqlite数据库
-2. `input.sh.shell`目录，`prefix`即为`-i`参数的值，例如-i参数为work.sh，则产生work.sh,shell目录
-3. 按照`-l`参数切割的input.sh的子脚本，存放在`input.sh.shell`目录，以**work_000**作为子脚本的前缀，例如`-l`参数为3，则把input.sh从第一行命令开始，每3行写入到work_000前缀命名的子脚本中
+[![Join Discord](https://img.shields.io/badge/Join_our_Discord_server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/RGEBtg8vQ6)
+[![Follow Twitter](https://img.shields.io/badge/follow_on_twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/goreleaser)
+[![GitHub Discussions](https://img.shields.io/badge/GITHUB_DISCUSSION-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/goreleaser/goreleaser/discussions)
 
+You can find the links above and all others [here](https://goreleaser.com/links/).
 
+### Code of Conduct
 
-## 并行子进程中其中有些子进程出错怎么办？
-例如示例所示`input.sh`中的第2个和第3个子脚本出错，那么待`input.sh`退出后，修正子脚本的命令行，再重新运行或者投递`input.sh`即可。在重新运行
-`work.sh`时，parta会自动跳过已经成功完成的子脚本，只运行出错的子脚本。
+This project adheres to the Contributor Covenant [code of conduct](https://github.com/goreleaser/.github/blob/main/CODE_OF_CONDUCT.md).
+By participating, you are expected to uphold this code.
+We appreciate your contribution.
+Please refer to our [contributing guidelines](CONTRIBUTING.md) for further information.
 
-# input.sh.db数据库
-parta会针对每一个输入脚本，在脚本所在目录生成`脚本名称`+`.db`的sqlite3数据库，用于记录各`子脚本`的运行状态，例如`input.sh`对应的数据库名称为`input.sh.db`
+## Badges
 
-`input.sh.db`这个sqlite3数据库有1个名为`job`的table，`job`主要包含以下几列
+[![Release](https://img.shields.io/github/release/goreleaser/goreleaser.svg?style=for-the-badge)](https://github.com/goreleaser/goreleaser/releases/latest)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge)](/LICENSE.md)
+[![Build status](https://img.shields.io/github/actions/workflow/status/goreleaser/goreleaser/build.yml?style=for-the-badge&branch=main)](https://github.com/goreleaser/goreleaser/actions?workflow=build)
+[![Codecov branch](https://img.shields.io/codecov/c/github/goreleaser/goreleaser/main.svg?style=for-the-badge)](https://codecov.io/gh/goreleaser/goreleaser)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/goreleaser&style=for-the-badge)](https://artifacthub.io/packages/search?repo=goreleaser)
+[![Go Doc](https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge)](http://godoc.org/github.com/goreleaser/goreleaser)
+[![Powered By: GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg?style=for-the-badge)](https://github.com/goreleaser)
+[![Backers on Open Collective](https://opencollective.com/goreleaser/backers/badge.svg?style=for-the-badge)](https://opencollective.com/goreleaser/backers/)
+[![Sponsors on Open Collective](https://opencollective.com/goreleaser/sponsors/badge.svg?style=for-the-badge)](https://opencollective.com/goreleaser/sponsors/)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=for-the-badge)](https://conventionalcommits.org)
+[![CII Best Practices](https://img.shields.io/cii/summary/5420?label=openssf%20best%20practices&style=for-the-badge)](https://bestpractices.coreinfrastructure.org/projects/5420)
 
-```
-0|Id|INTEGER|1||1
-1|subJob_num|INTEGER|1||0
-2|shellPath|TEXT|0||0
-3|status|TEXT|0||0
-4|exitCode|integer|0||0
-5|retry|integer|0||0
-6|starttime|datetime|0||0
-7|endtime|datetime|0||0
-```
-*  **subJob_num** 列表示记录的是第几个子脚本
-*  **shellPath**为对应子脚本路径
-*  **status**表示对应子脚本的状态，状态有4种: Pending Failed Running Finished
-*  **exitCode**为对应子脚本的退出码
-*  **retry**为如果子脚本出错的情况下parta程序自动重新尝试运行该出错子进程的次数（目前还未启用此功能）
-*  **starttime**为子脚本开始运行的时间
-*  **endtime**为子脚本结束运行的时间
+## GitHub Sponsors
 
-# 要在alpine docker中运行怎么办
-> alpine 镜像默认不带sqlite3，parta依赖于sqlite3，alpine需要更新，Dockerfile可以参考下面的
+High-tier sponsors of [@caarlos0](https://github.com/sponsors/caarlos0/) on GitHub:
 
-```
-FROM alpine:latest
+<a href="https://smallstep.com" target="_blank"><img width="200" src="https://github.com/goreleaser/goreleaser/assets/245435/05ade839-6652-474a-af90-da3ea67dde24"></a>
 
-MAINTAINER Yuan Zan <seqyuan@gmail.com>
+## OpenCollective
 
-RUN apk update && apk add --no-cache \
-	ttf-dejavu sqlite bash && \
-	mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 && \
-	if [ -e /bin/sh ];then rm /bin/sh ; fi \
-	&& if [ -e /bin/bash ];then ln -s /bin/bash /bin/sh ; fi
-```
-# 如果要把`parta`做到docker镜像的环境变量，方便调用怎么做？
-可以把`parta文件`和相应的Dockerfile放到同级目录下（相同上下文），Dockerfile内容如下：
+### Sponsors
 
-```
-FROM alpine:latest
+Does your company use goreleaser? Help keep the project bug-free and feature rich by [sponsoring the project](https://opencollective.com/goreleaser#sponsor).
 
-MAINTAINER Yuan Zan <seqyuan@gmail.com>
+<a href="https://opencollective.com/goreleaser/sponsors/0/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/0/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/1/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/1/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/2/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/2/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/3/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/3/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/4/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/4/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/5/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/5/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/6/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/6/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/7/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/7/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/8/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/8/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/9/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/9/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/10/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/10/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/11/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/11/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/12/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/12/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/13/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/13/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/14/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/14/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/15/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/15/avatar"></a>
+<a href="https://opencollective.com/goreleaser/sponsors/16/website" target="_blank"><img src="https://opencollective.com/goreleaser/sponsors/16/avatar"></a>
 
-COPY ./parta /opt/
-WORKDIR /opt
+### Backers
 
-RUN apk update && apk add --no-cache \
-	ttf-dejavu sqlite bash && \
-	mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 && \
-	chmod +x parta
-	if [ -e /bin/sh ];then rm /bin/sh ; fi \
-	&& if [ -e /bin/bash ];then ln -s /bin/bash /bin/sh ; fi
-	
-ENV PATH /opt:$PATH:/bin
-```
+Love our work and community? [Become a backer](https://opencollective.com/goreleaser).
 
-这样就能直接在docker容器内的命令行使用parta，而不必写绝对路径了
+<a href="https://opencollective.com/goreleaser/backers/0/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/0/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/1/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/1/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/2/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/2/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/3/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/3/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/4/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/4/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/5/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/5/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/6/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/6/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/7/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/7/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/8/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/8/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/9/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/9/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/10/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/10/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/11/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/11/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/12/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/12/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/13/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/13/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/14/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/14/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/15/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/15/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/16/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/16/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/17/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/17/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/18/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/18/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/19/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/19/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/20/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/20/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/21/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/21/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/22/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/22/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/23/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/23/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/24/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/24/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/25/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/25/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/26/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/26/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/27/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/27/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/28/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/28/avatar"></a>
+<a href="https://opencollective.com/goreleaser/backers/29/website" target="_blank"><img src="https://opencollective.com/goreleaser/backers/29/avatar"></a>
 
+### Contributors
 
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/goreleaser/goreleaser/graphs/contributors"><img src="https://opencollective.com/goreleaser/contributors.svg?width=890" /></a>
 
+## Stargazers over time
 
-## 版本管理
-`export version="v1.2.7" && git add -A  && git commit -m $version && git push && git tag $version && git push origin $version`
-
-## version
-First version release at 20220223, Created by Zan Yuan (seqyuan@gmail.com)
+[![Stargazers over time](https://starchart.cc/goreleaser/goreleaser.svg)](https://starchart.cc/goreleaser/goreleaser)
