@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/seqyuan/gpool"
 	"bufio"
 	"database/sql"
 	"fmt"
+	"github.com/seqyuan/parta/pkg/gpool"
 	"github.com/akamensky/argparse"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
@@ -17,14 +17,12 @@ import (
 	//"sync"
 	"syscall"
 	"time"
-
 	//"time"
 )
 
 type MySql struct {
 	Db	*sql.DB
 }
-
 
 func (sqObj *MySql)Crt_tb() {
 	// create table if not exists
@@ -302,7 +300,7 @@ func CheckExitCode(dbObj *MySql){
 	os.Exit(exitCode)
 }
 
-var documents string = `辅助并发程序`
+var documents string = `任务并发程序`
 
 func CheckErr(err error) {
 	if err != nil {
@@ -310,11 +308,12 @@ func CheckErr(err error) {
 	}
 }
 
+
 func main() {
 	parser := argparse.NewParser("parta", documents)
-	opt_i := parser.String("i", "infile", &argparse.Options{Required: true, Help: "Work.sh, same as qsub_sge's input format"})
-	opt_l := parser.Int("l", "line", &argparse.Options{Default: 1, Help: "Number of lines as a unit"})
-	opt_p := parser.Int("p", "thred", &argparse.Options{Default: 1, Help: "Thread process at same time"})
+	opt_i := parser.String("i", "infile", &argparse.Options{Required: true, Help: "Input shell command file (one command per line or grouped by -l)"})
+	opt_l := parser.Int("l", "line", &argparse.Options{Default: 1, Help: "Number of lines to group as one task (default: 1)"})
+	opt_p := parser.Int("p", "thread", &argparse.Options{Default: 1, Help: "Max concurrent tasks to run (default: 1)"})
 	//opt_r := parser.Int("r", "retry", &argparse.Options{Default: 1, Help: "Max retry times"})
 
 	err := parser.Parse(os.Args)
