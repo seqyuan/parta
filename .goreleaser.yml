@@ -2,9 +2,10 @@
 version: 1
 builds:
   - env:
-    - CGO_ENABLED=1
+      - CGO_ENABLED=1
     flags:
-      - -ldflags=-w -s
+      - -tags=osusergo,netgo,cgo
+      - -ldflags=-w -s -extldflags=-static
     tags:
       - osusergo
       - netgo 
@@ -13,6 +14,9 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
     hooks:
       pre: |
         if [ "{{.Os}}" = "linux" ]; then
@@ -21,12 +25,6 @@ builds:
           export PATH="$PATH:/opt/homebrew/bin"
           brew install sqlite
         fi
-    goarch:
-      - amd64
-      - arm64
-  flags:
-    - -tags=osusergo,netgo,cgo
-    - -ldflags=-extldflags=-static
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
