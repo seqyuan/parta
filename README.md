@@ -18,6 +18,8 @@ go build -o parta ./cmd/app/main.go
 ./parta [参数]
 ```
 
+
+
 ### 参数说明
 #### 基本参数
 - `--config string`  
@@ -32,3 +34,6 @@ go build -o parta ./cmd/app/main.go
 
 ## 版本管理
 `git add -A && git commit -m "v1.0.15" && git push && git tag v1.0.15 && git push origin v1.0.15`
+
+## version
+First version release at 20220223, Created by Zan Yuan (seqyuan@gmail.com)

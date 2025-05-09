@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/seqyuan/gpool"
 	"bufio"
 	"database/sql"
 	"fmt"
@@ -13,48 +14,19 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	//"sync"
 	"syscall"
 	"time"
+
+	//"time"
 )
 
-// Pool represents a goroutine pool
-type Pool struct {
-	work chan func()
-	sem  chan struct{}
-}
-
-// New creates a new goroutine pool
-func New(size int) *Pool {
-	return &Pool{
-		work: make(chan func()),
-		sem:  make(chan struct{}, size),
-	}
-}
-
-// Schedule schedules work to the pool
-func (p *Pool) Schedule(task func()) {
-	select {
-	case p.work <- task:
-	case p.sem <- struct{}{}:
-		go p.worker(task)
-	}
-}
-
-func (p *Pool) worker(task func()) {
-	defer func() { <-p.sem }()
-	for {
-		task()
-		task = <-p.work
-	}
-}
-
 type MySql struct {
-	Db *sql.DB
+	Db	*sql.DB
 }
 
-func (sqObj *MySql) Crt_tb() {
+
+func (sqObj *MySql)Crt_tb() {
 	// create table if not exists
 	sql_job_table := `
 	CREATE TABLE IF NOT EXISTS job(
@@ -74,20 +46,22 @@ func (sqObj *MySql) Crt_tb() {
 	}
 }
 
+
 type jobStatusType string
 
 // These are project or module type.
 const (
-	J_pending  jobStatusType = "Pending"
-	J_failed   jobStatusType = "Failed"
+	J_pending    jobStatusType = "Pending"
+	J_failed    jobStatusType = "Failed"
 	J_running  jobStatusType = "Running"
-	J_finished jobStatusType = "Finished"
+	J_finished  jobStatusType = "Finished"
 )
+
 
 func CheckCount(rows *sql.Rows) (count int) {
 	count = 0
 	for rows.Next() {
-		count++
+		count ++
 	}
 	if err := rows.Err(); err != nil {
 		panic(err)
@@ -95,7 +69,7 @@ func CheckCount(rows *sql.Rows) (count int) {
 	return count
 }
 
-func GenerateShell(shellPath, content string) {
+func GenerateShell(shellPath, content  string) {
 	fi, err := os.Create(shellPath)
 	if err != nil {
 		panic(err)
@@ -103,14 +77,14 @@ func GenerateShell(shellPath, content string) {
 	defer fi.Close()
 
 	content = strings.TrimRight(content, "\n")
-	content = fmt.Sprintf("#!/bin/bash\necho ========== start at : `date +%%Y/%%m/%%d` ==========\n%s", content)
-	content = fmt.Sprintf("%s && \\\necho ========== end at : `date +%%Y/%%m/%%d` ========== && \\\n", content)
+	content = fmt.Sprintf("#!/bin/bash\necho ========== start at : `date +%%Y/%%m/%%d` ==========\n%s",content)
+	content = fmt.Sprintf("%s && \\\necho ========== end at : `date +%%Y/%%m/%%d` ========== && \\\n",content)
 	content = fmt.Sprintf("%secho LLAP 1>&2 && \\\necho LLAP > %s.sign\n", content, shellPath)
 
 	_, err = fi.Write([]byte(content))
 }
 
-func Creat_tb(shell_path string, line_unit int) (dbObj *MySql) {
+func Creat_tb(shell_path string, line_unit int)(dbObj *MySql) {
 	shellAbsName, _ := filepath.Abs(shell_path)
 	dbpath := shellAbsName + ".db"
 	subShellPath := shellAbsName + ".shell"
@@ -143,18 +117,18 @@ func Creat_tb(shell_path string, line_unit int) (dbObj *MySql) {
 			break
 		}
 
-		if ii == 0 {
+		if ii == 0{
 			cmd_l = line
 			ii++
-		} else if ii < line_unit {
+		}else if ii < line_unit{
 			cmd_l = cmd_l + line
 			ii++
-		} else {
+		}else{
 			N++
 			Nrows, err := tx.Query("select Id from job where subJob_num = ?", N)
 			defer Nrows.Close()
 			CheckErr(err)
-			if CheckCount(Nrows) == 0 {
+			if CheckCount(Nrows)==0 {
 				cmd_l = strings.TrimRight(cmd_l, "\n")
 				subShell := subShellPath + "/work_" + strings.Repeat("0", 6-len(strconv.Itoa(N))) + strconv.Itoa(N) + ".sh"
 				GenerateShell(subShell, cmd_l)
@@ -166,12 +140,12 @@ func Creat_tb(shell_path string, line_unit int) (dbObj *MySql) {
 		}
 	}
 
-	if ii > 0 {
+	if ii > 0{
 		N++
 		Nrows, err := tx.Query("select Id from job where subJob_num = ?", N)
 		defer Nrows.Close()
 		CheckErr(err)
-		if CheckCount(Nrows) == 0 {
+		if CheckCount(Nrows)==0 {
 			cmd_l = strings.TrimRight(cmd_l, "\n")
 			subShell := subShellPath + "/work_" + strings.Repeat("0", 6-len(strconv.Itoa(N))) + strconv.Itoa(N) + ".sh"
 			GenerateShell(subShell, cmd_l)
@@ -184,7 +158,7 @@ func Creat_tb(shell_path string, line_unit int) (dbObj *MySql) {
 	return
 }
 
-func GetNeed2Run(dbObj *MySql) []int {
+func GetNeed2Run(dbObj *MySql)([]int){
 	//need2run := make(map[int]int)
 	tx, _ := dbObj.Db.Begin()
 	defer tx.Rollback()
@@ -210,19 +184,21 @@ func GetNeed2Run(dbObj *MySql) []int {
 	return need2run
 }
 
-func IlterCommand(dbObj *MySql, thred int, need2run []int) {
-	pool := New(thred)
-	var writeWg sync.WaitGroup
+func IlterCommand(dbObj *MySql, thred int, need2run []int){
+	pool := gpool.New(thred)
+	write_pool := gpool.New(1)
 
-	for _, N := range need2run {
-		N := N // create local copy for closure
-		pool.Schedule(func() {
-			RunCommand(N, dbObj, &writeWg)
-		})
+	for _, N := range need2run{
+		pool.Add(1)
+		go RunCommand(N, pool, dbObj, write_pool)
 	}
+
+	write_pool.Wait()
+	pool.Wait()
 }
 
-func RunCommand(N int, dbObj *MySql, writeWg *sync.WaitGroup) {
+
+func RunCommand(N int, pool *gpool.Pool, dbObj *MySql, write_pool *gpool.Pool){
 	tx, _ := dbObj.Db.Begin()
 	defer tx.Rollback()
 
@@ -231,10 +207,10 @@ func RunCommand(N int, dbObj *MySql, writeWg *sync.WaitGroup) {
 	CheckErr(err)
 
 	now := time.Now().Format("2006-01-02 15:04:05")
-	writeWg.Add(1)
+	write_pool.Add(1)
 	_, err = dbObj.Db.Exec("UPDATE job set status=?, starttime=? where subJob_num=?", J_running, now, N)
 	CheckErr(err)
-	writeWg.Done()
+	write_pool.Done()
 
 	defaultFailedCode := 1
 	cmd := exec.Command("sh", subShellPath)
@@ -270,19 +246,26 @@ func RunCommand(N int, dbObj *MySql, writeWg *sync.WaitGroup) {
 
 	//var lock sync.Mutex //互斥锁
 	//lock.Lock()
-	writeWg.Add(1)
+	write_pool.Add(1)
 	now = time.Now().Format("2006-01-02 15:04:05")
-	if exitCode == 0 {
+	if exitCode == 0{
+		//update_job_end.Exec(J_finished, now, N)
 		_, err = dbObj.Db.Exec("UPDATE job set status=?, endtime=?, exitCode=? where subJob_num=?", J_finished, now, exitCode, N)
-	} else {
+
+	}else{
 		_, err = dbObj.Db.Exec("UPDATE job set status=?, endtime=?, exitCode=? where subJob_num=?", J_failed, now, exitCode, N)
+
 	}
 
-	writeWg.Done()
+	write_pool.Done()
+	//lock.Unlock() //解锁
+
+	//err = tx.Commit()
 	CheckErr(err)
+	pool.Done()
 }
 
-func CheckExitCode(dbObj *MySql) {
+func CheckExitCode(dbObj *MySql){
 	tx, _ := dbObj.Db.Begin()
 	defer tx.Rollback()
 
@@ -302,7 +285,7 @@ func CheckExitCode(dbObj *MySql) {
 
 	exitCode := 0
 	os.Stderr.WriteString(fmt.Sprintf("All works: %v\nSuccessed: %v\nError: %v\n", SuccessCount+ErrorCount, SuccessCount, ErrorCount))
-	if ErrorCount > 0 {
+	if ErrorCount >0 {
 		exitCode = 1
 		os.Stderr.WriteString("Err Shells:\n")
 	}
@@ -319,11 +302,7 @@ func CheckExitCode(dbObj *MySql) {
 	os.Exit(exitCode)
 }
 
-var documents string = `辅助并发程序
-                    Created by Yuan Zan(seqyuan@gmail.com)
-                    Version 0.0.4 (20220223)
-                    输入格式同qsub_sge的输入文件格式
-1) 生成infile.shell目录`
+var documents string = `辅助并发程序`
 
 func CheckErr(err error) {
 	if err != nil {
@@ -332,7 +311,7 @@ func CheckErr(err error) {
 }
 
 func main() {
-	parser := argparse.NewParser("multiProcess", documents)
+	parser := argparse.NewParser("parta", documents)
 	opt_i := parser.String("i", "infile", &argparse.Options{Required: true, Help: "Work.sh, same as qsub_sge's input format"})
 	opt_l := parser.Int("l", "line", &argparse.Options{Default: 1, Help: "Number of lines as a unit"})
 	opt_p := parser.Int("p", "thred", &argparse.Options{Default: 1, Help: "Thread process at same time"})
