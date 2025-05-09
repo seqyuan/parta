@@ -1,13 +1,13 @@
 <p align="center">
   <img alt="GoReleaser Logo" src="https://avatars2.githubusercontent.com/u/24697112?v=3&s=200" height="140" />
-  <h3 align="center">GoReleaser</h3>
-  <p align="center">Deliver Go binaries as fast and easily as possible.</p>
+  <h3 align="center">parta</h3>
+  <p align="center">A go binaries for parrellel task.</p>
 </p>
 
 ---
 
 # parta
-辅助实现多线程工具
+parrellel task, 辅助实现多线程工具
 
 # 程序功能
 > 程序适用于有很多运行时间短，但是需要运行很多的脚本，有助于减少投递的脚本。
