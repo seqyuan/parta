@@ -1,4 +1,3 @@
-# Learn more: https://goreleaser.com
 version: 1
 builds:
   - id: "linux"
@@ -9,15 +8,18 @@ builds:
       - PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
     flags:
       - "-tags=cgo,sqlite_omit_load_extension"
-    tags:
-      - cgo
     ldflags:
       - "-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}"
     hooks:
       pre:
-        - cmd: sudo apt-get update -y
-        - cmd: sudo apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
-        - cmd: sudo ldconfig
+        - cmd: bash -c '
+            set -ex
+            # 等待apt锁释放
+            while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do sleep 1; done
+            while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 1; done
+            sudo apt-get update -y
+            sudo apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
+            sudo ldconfig'
     goos:
       - linux
     goarch:
