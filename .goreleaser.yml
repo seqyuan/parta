@@ -1,36 +1,6 @@
 # Learn more: https://goreleaser.com
 version: 1
 builds:
-  - id: "macos"
-    env:
-      - CGO_ENABLED=1
-      - CGO_CFLAGS=-I/opt/homebrew/opt/sqlite/include
-      - CGO_LDFLAGS=-L/opt/homebrew/opt/sqlite/lib -lsqlite3
-      - PKG_CONFIG_PATH=/opt/homebrew/opt/sqlite/lib/pkgconfig
-    flags:
-      - -tags=cgo,sqlite_omit_load_extension 
-      - -ldflags=-w -s
-    tags:
-      - cgo
-    hooks:
-      pre:
-        - "set -e"
-        - "cd /tmp || exit 1"
-        - "export PATH=\"$PATH:/opt/homebrew/bin\""
-        - "brew update --quiet"
-        - "brew install sqlite --force --formula"
-        - "brew link --overwrite sqlite --force"
-        - "sqlite3 --version"
-    goos:
-      - darwin
-    goarch:
-      - amd64
-      - arm64
-    main: ./cmd/app/main.go
-    ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
-    binary: parta
-
   - id: "linux"
     env:
       - CGO_ENABLED=1
@@ -38,42 +8,44 @@ builds:
       - CGO_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -lsqlite3
       - PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
     flags:
-      - -tags=cgo,sqlite_omit_load_extension
-      - -ldflags=-w -s
+      - "-tags=cgo,sqlite_omit_load_extension"
     tags:
       - cgo
+    ldflags:
+      - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}'
     hooks:
       pre:
-        - "set -e"
-        - "cd /tmp || exit 1"
-        - "sudo apt-get update -y -qq"
-        - "sudo apt-get install -y --no-install-recommends libsqlite3-dev pkg-config"
-        - "export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig"
-        - "sudo ldconfig"
-        - "dpkg -L libsqlite3-dev"
+        - |
+          set -e
+          cd /tmp || exit 1
+          sudo apt-get update -y -qq
+          sudo apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
+          export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+          sudo ldconfig
+          dpkg -L libsqlite3-dev
     goos:
       - linux
     goarch:
       - amd64
       - arm64
     main: ./cmd/app/main.go
-    ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
     binary: parta
 
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
     files:
       - LICENSE
       - README.md
-    formats:
-      - tar.gz
-      - zip
+    format_overrides:
+      - goos: linux
+        format: tar.gz
 
 checksum:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+  name_template: "{{.ProjectName}}_{{.Version}}_checksums.txt"
+  algorithm: sha256
 
 release:
   github:
     owner: seqyuan
     name: parta
+    draft: true

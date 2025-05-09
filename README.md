@@ -1,4 +1,6 @@
 # parta
+parallel task exe
+
 辅助实现多线程工具
 
 ### 编译
