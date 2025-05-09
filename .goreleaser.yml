@@ -1,5 +1,5 @@
 # Learn more: https://goreleaser.com
-version: 2
+version: 1
 builds:
   - id: "macos"
     env:
@@ -14,11 +14,13 @@ builds:
       - cgo
     hooks:
       pre:
-        - "cd /tmp"
+        - "set -e"
+        - "cd /tmp || exit 1"
         - "export PATH=\"$PATH:/opt/homebrew/bin\""
-        - "brew update"
-        - "brew install sqlite"
-        - "brew link --force sqlite"
+        - "brew update --quiet"
+        - "brew install sqlite --force --formula"
+        - "brew link --overwrite sqlite --force"
+        - "sqlite3 --version"
     goos:
       - darwin
     goarch:
@@ -42,10 +44,13 @@ builds:
       - cgo
     hooks:
       pre:
-        - "cd /tmp"
-        - "sudo apt-get update"
-        - "sudo apt-get install -y libsqlite3-dev pkg-config"
+        - "set -e"
+        - "cd /tmp || exit 1"
+        - "sudo apt-get update -y -qq"
+        - "sudo apt-get install -y --no-install-recommends libsqlite3-dev pkg-config"
         - "export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig"
+        - "sudo ldconfig"
+        - "dpkg -L libsqlite3-dev"
     goos:
       - linux
     goarch:
