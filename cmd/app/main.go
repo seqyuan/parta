@@ -75,8 +75,8 @@ func GenerateShell(shellPath, content  string) {
 	defer fi.Close()
 
 	content = strings.TrimRight(content, "\n")
-	content = fmt.Sprintf("#!/bin/bash\necho ========== start at : `date +%%Y/%%m/%%d` ==========\n%s",content)
-	content = fmt.Sprintf("%s && \\\necho ========== end at : `date +%%Y/%%m/%%d` ========== && \\\n",content)
+	content = fmt.Sprintf("#!/bin/bash\necho ========== start at : `date +%%Y/%%m/%%d %%H:%%M:%%S` ==========\n%s",content)
+	content = fmt.Sprintf("%s && \\\necho ========== end at : `date +%%Y/%%m/%%d %%H:%%M:%%S` ========== && \\\n",content)
 	content = fmt.Sprintf("%secho LLAP 1>&2 && \\\necho LLAP > %s.sign\n", content, shellPath)
 
 	_, err = fi.Write([]byte(content))
@@ -300,7 +300,7 @@ func CheckExitCode(dbObj *MySql){
 	os.Exit(exitCode)
 }
 
-var documents string = `任务并发程序`
+var documents string = `任务并发程序 parrell task v1.4.1`
 
 func CheckErr(err error) {
 	if err != nil {
