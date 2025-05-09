@@ -3,8 +3,6 @@ builds:
   - id: "linux"
     env:
       - CGO_ENABLED=1
-      - CC=aarch64-linux-gnu-gcc    # 关键点1：指定ARM64的C编译器
-      - CXX=aarch64-linux-gnu-g++   # 关键点2：指定ARM64的C++编译器
       - CGO_CFLAGS=-I/usr/include
       - CGO_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -lsqlite3
       - PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
