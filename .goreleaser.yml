@@ -1,60 +1,69 @@
 # Learn more: https://goreleaser.com
-version: 1
+version: 2
 builds:
-  - env:
+  - id: "macos"
+    env:
       - CGO_ENABLED=1
       - CGO_CFLAGS=-I/opt/homebrew/opt/sqlite/include
       - CGO_LDFLAGS=-L/opt/homebrew/opt/sqlite/lib -lsqlite3
       - PKG_CONFIG_PATH=/opt/homebrew/opt/sqlite/lib/pkgconfig
-    goos: [darwin]
     flags:
-      - -tags=cgo,sqlite_omit_load_extension
+      - -tags=cgo,sqlite_omit_load_extension 
       - -ldflags=-w -s
     tags:
       - cgo
+    hooks:
+      pre:
+        - "cd /tmp"
+        - "export PATH=\"$PATH:/opt/homebrew/bin\""
+        - "brew update"
+        - "brew install sqlite"
+        - "brew link --force sqlite"
+    goos:
+      - darwin
     goarch:
       - amd64
       - arm64
-    hooks:
-      pre:
-        - cmd: export PATH="$PATH:/opt/homebrew/bin"; brew update; brew install sqlite; brew link --force sqlite
-          dir: /tmp
-      platforms: [darwin]
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
     binary: parta
 
-  - env:
+  - id: "linux"
+    env:
       - CGO_ENABLED=1
       - CGO_CFLAGS=-I/usr/include
       - CGO_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -lsqlite3
       - PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
-    goos: [linux]
     flags:
       - -tags=cgo,sqlite_omit_load_extension
       - -ldflags=-w -s
     tags:
       - cgo
+    hooks:
+      pre:
+        - "cd /tmp"
+        - "sudo apt-get update"
+        - "sudo apt-get install -y libsqlite3-dev pkg-config"
+        - "export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig"
+    goos:
+      - linux
     goarch:
       - amd64
       - arm64
-    hooks:
-      pre:
-        - cmd: sudo apt-get update; sudo apt-get install -y libsqlite3-dev pkg-config; export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
-          dir: /tmp
-      platforms: [linux]
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
     binary: parta
 
 archives:
-  - format: tar.gz
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - LICENSE
       - README.md
+    formats:
+      - tar.gz
+      - zip
 
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
