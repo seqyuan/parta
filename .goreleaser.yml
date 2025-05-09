@@ -2,14 +2,25 @@
 version: 1
 builds:
   - env:
-      - CGO_ENABLED=0
+    - CGO_ENABLED=1
+    - GODEBUG=netdns=go
+    - GO111MODULE=auto
     goos:
       - linux
       - windows
       - darwin
+    hooks:
+      pre: |
+        if [ "{{.Os}}" = "linux" ]; then
+          apt-get update && apt-get install -y libsqlite3-dev
+        elif [ "{{.Os}}" = "darwin" ]; then
+          brew install sqlite
+        fi        
     goarch:
       - amd64
       - arm64
+  flags:
+    - -tags=cgo
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
