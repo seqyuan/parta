@@ -3,8 +3,12 @@ version: 1
 builds:
   - env:
     - CGO_ENABLED=1
-    - GODEBUG=netdns=go
-    - GO111MODULE=auto
+    flags:
+      - -ldflags=-w -s
+    tags:
+      - osusergo
+      - netgo 
+      - cgo
     goos:
       - linux
       - windows
@@ -12,15 +16,17 @@ builds:
     hooks:
       pre: |
         if [ "{{.Os}}" = "linux" ]; then
-          apt-get update && apt-get install -y libsqlite3-dev
+          sudo apt-get update && sudo apt-get install -y libsqlite3-dev
         elif [ "{{.Os}}" = "darwin" ]; then
+          export PATH="$PATH:/opt/homebrew/bin"
           brew install sqlite
-        fi        
+        fi
     goarch:
       - amd64
       - arm64
   flags:
-    - -tags=cgo
+    - -tags=osusergo,netgo,cgo
+    - -ldflags=-extldflags=-static
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
