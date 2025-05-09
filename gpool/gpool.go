@@ -10,7 +10,7 @@ type Pool struct {
 func New(size int) *Pool {
     return &Pool{
         work: make(chan func()),
-        sem:  make(chan struct{}, size),
+        sem: make(chan struct{}, size),
     }
 }
 
