@@ -28,14 +28,13 @@ jobs:
           go mod tidy
           go get github.com/akamensky/argparse
           go get github.com/mattn/go-sqlite3
-          go get github.com/seqyuan/gpool
       - name: Install SQLite3
         run: sudo apt-get install sqlite3 libsqlite3-dev -y
         
       - name: Build
         env:
           CGO_ENABLED: 1
-        run: go build -tags cgo -v ./...
+        run: CGO_ENABLED=1 go build -tags cgo -v ./...
 
   release:
     needs: [test, build]
@@ -67,3 +66,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
+          CGO_ENABLED: 1
