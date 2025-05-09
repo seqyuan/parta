@@ -48,4 +48,3 @@ release:
   github:
     owner: seqyuan
     name: parta
-    draft: true
