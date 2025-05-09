@@ -128,7 +128,7 @@ ENV PATH /opt:$PATH:/bin
 
 
 ## 版本管理
-`git add -A && git commit -m "v1.0.15" && git push && git tag v1.0.15 && git push origin v1.0.15`
+`export version="v1.2.7" && git add -A  && git commit -m $version && git push && git tag $version && git push origin $version`
 
 ## version
 First version release at 20220223, Created by Zan Yuan (seqyuan@gmail.com)

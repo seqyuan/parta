@@ -16,11 +16,7 @@ builds:
       - amd64
       - arm64
     hooks:
-      cmd: |
-        export PATH="$PATH:/opt/homebrew/bin"
-        brew update && \
-        brew install sqlite && \
-        brew link --force sqlite
+      cmd: export PATH="$PATH:/opt/homebrew/bin"; brew update; brew install sqlite; brew link --force sqlite
       dir: /tmp  
       platforms: [darwin]
     main: ./cmd/app/main.go
@@ -43,10 +39,7 @@ builds:
       - amd64
       - arm64
     hooks:
-      cmd: |
-        sudo apt-get update && \
-        sudo apt-get install -y libsqlite3-dev pkg-config && \
-        export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+      cmd: sudo apt-get update; sudo apt-get install -y libsqlite3-dev pkg-config; export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
       dir: /tmp
       platforms: [linux]
     main: ./cmd/app/main.go
