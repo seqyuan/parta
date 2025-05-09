@@ -22,7 +22,6 @@ builds:
             sudo ldconfig
     goos:
       - linux
-      
     goarch:
       - amd64
       - arm64
@@ -40,7 +39,7 @@ archives:
 
 checksum:
   name_template: "{{.ProjectName}}_{{.Version}}_checksums.txt"
-    algorithm: sha256
+  algorithm: sha256
 
 release:
   github:
