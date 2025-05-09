@@ -3,28 +3,52 @@ version: 1
 builds:
   - env:
       - CGO_ENABLED=1
+      - CGO_CFLAGS=-I/opt/homebrew/opt/sqlite/include
+      - CGO_LDFLAGS=-L/opt/homebrew/opt/sqlite/lib -lsqlite3
+      - PKG_CONFIG_PATH=/opt/homebrew/opt/sqlite/lib/pkgconfig
+    goos: [darwin]
     flags:
-      - -tags=cgo
+      - -tags=cgo,sqlite_omit_load_extension
       - -ldflags=-w -s
     tags:
       - cgo
-    goos:
-      - linux
-      - darwin
     goarch:
       - amd64
       - arm64
     hooks:
-      - cmd: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
-        dir: /tmp
-        platforms: [linux]
-      
       - cmd: |
           export PATH="$PATH:/opt/homebrew/bin"
-          brew install sqlite
+          brew update && \
+          brew install sqlite && \
+          brew link --force sqlite
         dir: /tmp  
         platforms: [darwin]
-      
+    main: ./cmd/app/main.go
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    binary: parta
+
+  - env:
+      - CGO_ENABLED=1
+      - CGO_CFLAGS=-I/usr/include
+      - CGO_LDFLAGS=-L/usr/lib/x86_64-linux-gnu -lsqlite3
+      - PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+    goos: [linux]
+    flags:
+      - -tags=cgo,sqlite_omit_load_extension
+      - -ldflags=-w -s
+    tags:
+      - cgo
+    goarch:
+      - amd64
+      - arm64
+    hooks:
+      - cmd: |
+          sudo apt-get update && \
+          sudo apt-get install -y libsqlite3-dev pkg-config && \
+          export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+        dir: /tmp
+        platforms: [linux]
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}

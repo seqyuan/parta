@@ -26,7 +26,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential sqlite3 libsqlite3-dev
           go mod tidy
-          go install github.com/mattn/go-sqlite3@latest
+          go get github.com/mattn/go-sqlite3@latest
+          go get github.com/akamensky/argparse@latest
         
       - name: Build
         env:
