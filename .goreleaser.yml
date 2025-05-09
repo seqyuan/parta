@@ -16,13 +16,13 @@ builds:
       - amd64
       - arm64
     hooks:
-      - cmd: |
-          export PATH="$PATH:/opt/homebrew/bin"
-          brew update && \
-          brew install sqlite && \
-          brew link --force sqlite
-        dir: /tmp  
-        platforms: [darwin]
+      cmd: |
+        export PATH="$PATH:/opt/homebrew/bin"
+        brew update && \
+        brew install sqlite && \
+        brew link --force sqlite
+      dir: /tmp  
+      platforms: [darwin]
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
@@ -43,12 +43,12 @@ builds:
       - amd64
       - arm64
     hooks:
-      - cmd: |
-          sudo apt-get update && \
-          sudo apt-get install -y libsqlite3-dev pkg-config && \
-          export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
-        dir: /tmp
-        platforms: [linux]
+      cmd: |
+        sudo apt-get update && \
+        sudo apt-get install -y libsqlite3-dev pkg-config && \
+        export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig
+      dir: /tmp
+      platforms: [linux]
     main: ./cmd/app/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
